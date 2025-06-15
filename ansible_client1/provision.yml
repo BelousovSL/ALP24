@@ -1,0 +1,35 @@
+---
+- name: Сustomization  
+  hosts: servers  
+  become: yes  
+  tasks:
+  - name: Update and upgrade apt packages
+    apt:
+      update_cache: yes
+      upgrade: yes
+
+  - name: copy resolv.conf to the client
+    copy:
+      src: client-resolv.conf
+      dest: /etc/resolv.conf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: copy rndc conf file
+    copy:
+      src: rndc.conf
+      dest: /home/vagrant/rndc.conf
+      owner: vagrant
+      group: vagrant
+      mode: 0644
+
+  - name: copy motd to the client
+    copy:
+      src: client-motd
+      dest: /etc/motd
+      owner: root
+      group: root
+      mode: 0644
+
+  

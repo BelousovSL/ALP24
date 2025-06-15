@@ -1,0 +1,53 @@
+acl internal-network {
+    192.168.60.0/24;  // Replace with your network
+};
+
+options {
+    directory "/var/cache/bind";
+    recursion yes;    
+	allow-query     { any; };
+    allow-transfer { any; };
+    allow-recursion { localhost; internal-network; };
+    listen-on { 127.0.0.1; 192.168.60.11; };  // Replace with your server's IP
+    forwarders {
+        8.8.8.8;
+        8.8.4.4;
+    };
+    dnssec-validation auto;
+    auth-nxdomain no;
+};
+
+// RNDC Control for client
+key "rndc-key" {
+    algorithm hmac-md5;
+    secret "GrtiE9kz16GK+OKKU/qJvQ==";
+};
+controls {
+        inet 192.168.60.11 allow { 192.168.60.15; } keys { "rndc-key"; };
+};
+
+// ZONE TRANSFER WITH TSIG
+//include "/etc/named.zonetransfer.key"; 
+
+key "zonetransfer.key" {
+    algorithm hmac-md5;
+    secret "SB4Db9pJomyKxTNynlAq/g==";
+};
+
+server 192.168.60.10 {
+    keys { "zonetransfer.key"; };
+};
+
+zone "dns.lab" {
+    type slave;
+    file "/etc/bind/zones/dns.lab";
+    masters { 192.168.60.10; };
+};
+
+// lab's newdns zone
+zone "newdns.lab" {
+    type slave;    
+    file "/etc/bind/zones/named.newdns.lab";
+    masters { 192.168.60.10; };
+};
+

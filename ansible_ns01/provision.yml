@@ -1,0 +1,105 @@
+---
+- name: Сustomization  
+  hosts: servers  
+  become: yes  
+  tasks:
+  - name: Update and upgrade apt packages
+    apt:
+      update_cache: yes
+      upgrade: yes
+  
+  - name: install packages
+    apt:
+      name: 
+        - bind9
+        - bind9utils
+        - ntp
+      state: present
+      update_cache: true
+
+  - name: Copy file with owner and permissions
+    ansible.builtin.copy:
+      src: /usr/share/zoneinfo/Europe/Moscow
+      dest: /etc/localtime
+      owner: root
+      group: root
+      mode: '0777'
+
+  - name: Restart service ntp, in all cases
+    ansible.builtin.service:
+      name: ntp
+      state: restarted
+
+  #- name: copy named.zonetransfer.key
+  #  copy:
+  #    src: named.zonetransfer.key
+  #    dest: /etc/named.zonetransfer.key
+  #    owner: root
+  #    group: bind
+  #    mode: 0644
+
+  - name: copy named.conf.options
+    copy:
+      src: named.conf.options
+      dest: /etc/bind/named.conf.options
+      owner: root
+      group: bind
+      mode: 0644
+
+  - name: Create a directory zones
+    file:  
+      path: /etc/bind/zones  
+      state: directory  
+  
+  - name: copy named.dns.lab
+    copy:
+      src: named.dns.lab
+      dest: /etc/bind/zones/dns.lab
+      owner: root
+      group: bind
+      mode: 0644
+
+  - name: copy named.newdns.lab
+    copy:
+      src: named.newdns.lab
+      dest: /etc/bind/zones/named.newdns.lab
+      owner: root
+      group: bind
+      mode: 0644
+
+  - name: copy named.dns.lab.client1
+    copy:
+      src: named.dns.lab.client1
+      dest: /etc/bind/zones/named.dns.lab.client1
+      owner: root
+      group: bind
+      mode: 0644
+
+  - name: copy named.dns.lab.client2
+    copy:
+      src: named.dns.lab.client2
+      dest: /etc/bind/zones/named.dns.lab.client2
+      owner: root
+      group: bind
+      mode: 0644
+
+  - name: copy named.conf
+    copy:
+      src: named.conf-my.conf      
+      dest: /etc/bind/named.conf
+      owner: root
+      group: bind
+      mode: 0644
+
+  - name: copy resolv.conf to the client
+    copy:
+      src: client-resolv.conf
+      dest: /etc/resolv.conf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Restart service bind9
+    ansible.builtin.service:
+      name: bind9
+      state: restarted
